@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Takvim</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <header class="app-header">
+    <div class="nav-controls">
+      <button id="prevMonthBtn" class="icon-btn" aria-label="Önceki ay">&#8249;</button>
+      <h1 id="monthYearLabel" class="month-year"></h1>
+      <button id="nextMonthBtn" class="icon-btn" aria-label="Sonraki ay">&#8250;</button>
+    </div>
+    <div class="header-actions">
+      <button id="todayBtn" class="btn" data-i18n="today"></button>
+      <div class="lang-switcher" role="group" aria-label="Dil seçimi">
+        <button class="lang-btn" data-lang="tr">TR</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="weekday-row" id="weekdayRow"></div>
+  <div class="calendar-grid" id="calendarGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalDateLabel">
+    <div class="modal-header">
+      <h2 id="modalDateLabel"></h2>
+      <button id="closeModalBtn" class="icon-btn" aria-label="Kapat">&times;</button>
+    </div>
+
+    <div id="eventList" class="event-list"></div>
+
+    <button id="addEventBtn" class="btn btn-primary" data-i18n="addEvent"></button>
+
+    <form id="eventForm" class="event-form hidden">
+      <input type="hidden" id="eventId">
+      <label for="eventTitle" data-i18n="titleLabel"></label>
+      <input type="text" id="eventTitle" required>
+
+      <label for="eventTime" data-i18n="timeLabel"></label>
+      <input type="time" id="eventTime">
+
+      <label for="eventDescription" data-i18n="descriptionLabel"></label>
+      <textarea id="eventDescription" rows="3"></textarea>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" data-i18n="save"></button>
+        <button type="button" id="cancelFormBtn" class="btn" data-i18n="cancel"></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
