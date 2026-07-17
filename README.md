@@ -2,6 +2,8 @@
 
 A simple, clean, multi-language calendar app with user accounts. Sign up, browse the monthly view, and click any day to add, edit, or delete events — your events are saved to your account and sync back whenever you log in again. Built with plain HTML/CSS/JavaScript (no framework, no build tool) plus Firebase for authentication and data storage.
 
+**🔗 Live demo: [kirtayy.github.io/Calender](https://kirtayy.github.io/Calender/)**
+
 ## Features
 
 - 📅 Monthly calendar view (previous/next month and "today" navigation)
