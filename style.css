@@ -1,12 +1,13 @@
 :root {
-  --accent: #3b6df0;
-  --accent-light: #e8edfd;
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --border: #e2e4e9;
-  --text: #1f2430;
-  --text-muted: #6b7280;
-  --danger: #e0533d;
+  color-scheme: dark;
+  --accent: #5b8dff;
+  --accent-light: #24314f;
+  --bg: #14161c;
+  --surface: #1c2029;
+  --border: #2c3140;
+  --text: #eef0f4;
+  --text-muted: #9aa0ad;
+  --danger: #ff6b57;
   --radius: 10px;
 }
 
@@ -96,7 +97,7 @@ body {
 }
 
 .btn-primary:hover {
-  background: #2f5ad1;
+  background: #74a0ff;
 }
 
 .lang-switcher {
@@ -163,7 +164,7 @@ body {
 
 .day-cell.outside {
   color: var(--text-muted);
-  background: #fbfbfc;
+  background: var(--bg);
 }
 
 .day-cell.today {
