@@ -91,6 +91,21 @@
 - Yanlış e-posta/şifre veya zaten kayıtlı e-posta gibi durumlarda kullanıcıya anlaşılır, seçili dile göre çevrilmiş bir hata mesajı gösteriliyor
 - Not: Gerçek Firebase proje anahtarları girilmeden (placeholder değerlerle) giriş/kayıt işlemleri çalışmaz — bu beklenen bir durumdur, kullanıcı kendi `firebase-config.js` değerlerini girdikten sonra tam olarak test edilebilir
 
+## 8. Arka plan görselini uygulamaya ekleme ve takvim görünümünü buna göre düzenleme
+
+- [x] `image.png` dosyasını body arka planı olarak ayarla (cover, sabit/fixed, ortalanmış)
+- [x] Renk paletini görsele uygun pastel tonlara çevir (açık mavi/gri arkaplan, pembe/kiraz accent, koyu metin) — mevcut koyu tema yerine
+- [x] Takvim/kart/modal yüzeylerini yarı saydam + hafif blur ("cam" efekti) yaparak arka planın hissedilmesini sağla
+- [x] `today` hücresi, event-dot, buton gibi accent renklerini yeni pembe/mavi paletle güncelle
+- [x] `<meta name="color-scheme">` ve `theme-color` değerlerini açık temaya göre güncelle
+- [x] Mobil/masaüstü görünümde arka planın ve okunabilirliğin bozulmadığını tarayıcıda test et
+
+**Kabul kriterleri:**
+- Sayfa açıldığında `image.png` tüm ekranı kaplayan arka plan olarak görünüyor
+- Takvim kartı, modal ve butonlar yeni pastel temayla görsel olarak uyumlu
+- Metinler arka plan üzerinde okunabilir kalıyor (yeterli kontrast)
+- Mobilde de arka plan düzgün kesiliyor/ölçekleniyor, taşma olmuyor
+
 ---
 
 ## Review
@@ -113,3 +128,12 @@ Oluşturulan dosyalar: `index.html`, `style.css`, `script.js` (framework/build a
 - Firestore güvenlik kuralı ile her kullanıcı yalnızca kendi verisine erişebiliyor.
 - TR/EN/DE için giriş/kayıt/çıkış metinleri ve Firebase hata mesajları çevirisi eklendi.
 - Playwright ile doğrulandı: auth ekranının varsayılan olarak göründüğü, sekme geçişlerinin (giriş/kayıt) çalıştığı, dil değişiminin auth ekranını da kapsadığı, ve placeholder Firebase anahtarlarıyla yapılan bir kayıt denemesinin beklendiği gibi (JS hatası fırlatmadan) çevrilmiş bir hata mesajıyla sonuçlandığı gözlemlendi. Gerçek giriş/kayıt akışı, kullanıcı kendi Firebase proje anahtarlarını `firebase-config.js`'e girdikten sonra uçtan uca test edilebilir.
+
+### Güncelleme: Arka plan görseli + pastel tema (bölüm 8)
+
+- `index.html`: `color-scheme` ve `theme-color` meta etiketleri açık temaya çevrildi.
+- `style.css`: `:root` değişkenleri (`--accent`, `--bg`, `--surface`, `--border`, `--text`, `--text-muted`) koyu temadan, görseldeki pastel mavi-gri/pembe tonlarına çevrildi; önceki commit'te bilinçli olarak yapılan "her zaman koyu tema" kararı, kullanıcı onayıyla bu görsele uyum sağlamak için tersine çevrildi.
+- `body`'ye `image.png` arka plan olarak eklendi (`cover`, `fixed`); 600px altındaki media query'de `background-attachment: scroll`'a düşüyor (iOS Safari'de fixed arka planların sorunlu davranmasını önlemek için).
+- Kart/buton/modal gibi `var(--surface)` kullanan tüm yüzeylere `backdrop-filter: blur(10px)` eklenerek arka planın hafifçe süzüldüğü bir "cam" efekti oluşturuldu; auth kartı ve modal biraz daha opak (`--surface-strong`) tutularak okunabilirlik garanti edildi.
+- `script.js`'e hiç dokunulmadı (tema/renk mantığı barındırmıyor).
+- Playwright ile doğrulandı: masaüstü (1280px) ve mobil (375px) genişlikte auth ekranı, takvim grid'i ve gün modalı ekran görüntüleriyle kontrol edildi — arka plan doğru kesiliyor, metinler okunabilir, konsolda hiçbir hata yok.
