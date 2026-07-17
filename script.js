@@ -470,6 +470,7 @@
     auth.createUserWithEmailAndPassword(email, password)
       .then(function (credential) {
         return credential.user.updateProfile({ displayName: name }).then(function () {
+          userDisplayName.textContent = name;
           return db.collection("users").doc(credential.user.uid).set({
             displayName: name,
             events: {}
