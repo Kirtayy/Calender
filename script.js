@@ -1,13 +1,19 @@
 (function () {
   "use strict";
 
-  var EVENTS_KEY = "calendarEvents";
   var LANG_KEY = "calendarLang";
 
   var translations = {
     tr: {
       months: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
       weekdays: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+      appTitle: "Takvim",
+      login: "Giriş Yap",
+      register: "Kayıt Ol",
+      logout: "Çıkış Yap",
+      emailLabel: "E-posta",
+      passwordLabel: "Şifre",
+      displayNameLabel: "Ad Soyad",
       today: "Bugün",
       addEvent: "Etkinlik Ekle",
       titleLabel: "Başlık",
@@ -18,11 +24,28 @@
       edit: "Düzenle",
       delete: "Sil",
       noEvents: "Bu güne ait etkinlik yok.",
-      locale: "tr-TR"
+      locale: "tr-TR",
+      authErrors: {
+        "auth/email-already-in-use": "Bu e-posta adresi zaten kayıtlı.",
+        "auth/invalid-email": "Geçersiz e-posta adresi.",
+        "auth/weak-password": "Şifre en az 6 karakter olmalı.",
+        "auth/wrong-password": "E-posta veya şifre hatalı.",
+        "auth/user-not-found": "E-posta veya şifre hatalı.",
+        "auth/invalid-credential": "E-posta veya şifre hatalı.",
+        "auth/too-many-requests": "Çok fazla deneme yapıldı, lütfen daha sonra tekrar deneyin.",
+        "default": "Bir hata oluştu, lütfen tekrar deneyin."
+      }
     },
     en: {
       months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
       weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      appTitle: "Calendar",
+      login: "Log In",
+      register: "Sign Up",
+      logout: "Log Out",
+      emailLabel: "Email",
+      passwordLabel: "Password",
+      displayNameLabel: "Full Name",
       today: "Today",
       addEvent: "Add Event",
       titleLabel: "Title",
@@ -33,11 +56,28 @@
       edit: "Edit",
       delete: "Delete",
       noEvents: "No events for this day.",
-      locale: "en-US"
+      locale: "en-US",
+      authErrors: {
+        "auth/email-already-in-use": "This email is already registered.",
+        "auth/invalid-email": "Invalid email address.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/wrong-password": "Incorrect email or password.",
+        "auth/user-not-found": "Incorrect email or password.",
+        "auth/invalid-credential": "Incorrect email or password.",
+        "auth/too-many-requests": "Too many attempts, please try again later.",
+        "default": "Something went wrong, please try again."
+      }
     },
     de: {
       months: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
       weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
+      appTitle: "Kalender",
+      login: "Anmelden",
+      register: "Registrieren",
+      logout: "Abmelden",
+      emailLabel: "E-Mail",
+      passwordLabel: "Passwort",
+      displayNameLabel: "Name",
       today: "Heute",
       addEvent: "Termin hinzufügen",
       titleLabel: "Titel",
@@ -48,16 +88,27 @@
       edit: "Bearbeiten",
       delete: "Löschen",
       noEvents: "Keine Termine an diesem Tag.",
-      locale: "de-DE"
+      locale: "de-DE",
+      authErrors: {
+        "auth/email-already-in-use": "Diese E-Mail-Adresse ist bereits registriert.",
+        "auth/invalid-email": "Ungültige E-Mail-Adresse.",
+        "auth/weak-password": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        "auth/wrong-password": "E-Mail oder Passwort ist falsch.",
+        "auth/user-not-found": "E-Mail oder Passwort ist falsch.",
+        "auth/invalid-credential": "E-Mail oder Passwort ist falsch.",
+        "auth/too-many-requests": "Zu viele Versuche, bitte später erneut versuchen.",
+        "default": "Etwas ist schiefgelaufen, bitte versuche es erneut."
+      }
     }
   };
 
   var state = {
     lang: loadLang(),
     viewDate: new Date(),
-    events: loadEvents(),
+    events: {},
     selectedDateKey: null,
-    editingEventId: null
+    editingEventId: null,
+    currentUser: null
   };
 
   var monthYearLabel = document.getElementById("monthYearLabel");
@@ -80,6 +131,17 @@
   var eventDescriptionInput = document.getElementById("eventDescription");
   var cancelFormBtn = document.getElementById("cancelFormBtn");
 
+  var authScreen = document.getElementById("authScreen");
+  var appScreen = document.getElementById("appScreen");
+  var userBar = document.getElementById("userBar");
+  var userDisplayName = document.getElementById("userDisplayName");
+  var logoutBtn = document.getElementById("logoutBtn");
+  var showLoginTab = document.getElementById("showLoginTab");
+  var showRegisterTab = document.getElementById("showRegisterTab");
+  var loginForm = document.getElementById("loginForm");
+  var registerForm = document.getElementById("registerForm");
+  var authError = document.getElementById("authError");
+
   function t(key) {
     return translations[state.lang][key];
   }
@@ -87,19 +149,6 @@
   function loadLang() {
     var saved = localStorage.getItem(LANG_KEY);
     return saved && translations[saved] ? saved : "tr";
-  }
-
-  function loadEvents() {
-    try {
-      var raw = localStorage.getItem(EVENTS_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
-  }
-
-  function saveEvents() {
-    localStorage.setItem(EVENTS_KEY, JSON.stringify(state.events));
   }
 
   function formatDateKey(date) {
@@ -317,6 +366,22 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2);
   }
 
+  // --- Firestore-backed persistence ---
+
+  function loadEventsFromFirestore(uid) {
+    return db.collection("users").doc(uid).get().then(function (doc) {
+      return doc.exists && doc.data().events ? doc.data().events : {};
+    });
+  }
+
+  function saveEvents() {
+    if (!state.currentUser) return;
+    db.collection("users").doc(state.currentUser.uid).set(
+      { events: state.events },
+      { merge: true }
+    );
+  }
+
   function addEvent(dateKey, data) {
     if (!state.events[dateKey]) {
       state.events[dateKey] = [];
@@ -355,6 +420,95 @@
     renderEventList(dateKey);
     renderCalendar();
   }
+
+  // --- Auth ---
+
+  function showAuthError(error) {
+    var messages = translations[state.lang].authErrors;
+    var code = error && error.code;
+    authError.textContent = (code && messages[code]) || messages["default"];
+    authError.classList.remove("hidden");
+  }
+
+  function clearAuthError() {
+    authError.classList.add("hidden");
+    authError.textContent = "";
+  }
+
+  function switchAuthTab(tab) {
+    clearAuthError();
+    var isLogin = tab === "login";
+    showLoginTab.classList.toggle("active", isLogin);
+    showRegisterTab.classList.toggle("active", !isLogin);
+    loginForm.classList.toggle("hidden", !isLogin);
+    registerForm.classList.toggle("hidden", isLogin);
+  }
+
+  showLoginTab.addEventListener("click", function () {
+    switchAuthTab("login");
+  });
+
+  showRegisterTab.addEventListener("click", function () {
+    switchAuthTab("register");
+  });
+
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    clearAuthError();
+    var email = document.getElementById("loginEmail").value.trim();
+    var password = document.getElementById("loginPassword").value;
+    auth.signInWithEmailAndPassword(email, password).catch(showAuthError);
+  });
+
+  registerForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    clearAuthError();
+    var name = document.getElementById("registerName").value.trim();
+    var email = document.getElementById("registerEmail").value.trim();
+    var password = document.getElementById("registerPassword").value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(function (credential) {
+        return credential.user.updateProfile({ displayName: name }).then(function () {
+          return db.collection("users").doc(credential.user.uid).set({
+            displayName: name,
+            events: {}
+          });
+        });
+      })
+      .catch(showAuthError);
+  });
+
+  logoutBtn.addEventListener("click", function () {
+    auth.signOut();
+  });
+
+  auth.onAuthStateChanged(function (user) {
+    if (user) {
+      state.currentUser = user;
+      authScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+      userBar.classList.remove("hidden");
+      userDisplayName.textContent = user.displayName || user.email;
+
+      loadEventsFromFirestore(user.uid).then(function (events) {
+        state.events = events;
+        renderCalendar();
+      });
+    } else {
+      state.currentUser = null;
+      state.events = {};
+      appScreen.classList.add("hidden");
+      userBar.classList.add("hidden");
+      authScreen.classList.remove("hidden");
+      loginForm.reset();
+      registerForm.reset();
+      switchAuthTab("login");
+      renderCalendar();
+    }
+  });
+
+  // --- Calendar navigation & modal wiring ---
 
   prevMonthBtn.addEventListener("click", function () {
     state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() - 1, 1);

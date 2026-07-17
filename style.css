@@ -302,14 +302,16 @@ body {
   display: none !important;
 }
 
-.event-form label {
+.event-form label,
+.auth-form label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
 .event-form input,
-.event-form textarea {
+.event-form textarea,
+.auth-form input {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -322,6 +324,94 @@ body {
   display: flex;
   gap: 8px;
   margin-top: 4px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 16px 0;
+}
+
+.user-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+}
+
+.auth-card h1 {
+  margin: 0 0 16px;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.auth-tabs {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.auth-tab {
+  flex: 1;
+  border: none;
+  background: var(--surface);
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.auth-tab + .auth-tab {
+  border-left: 1px solid var(--border);
+}
+
+.auth-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-form .btn {
+  margin-top: 8px;
+}
+
+.auth-error {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--danger);
+  text-align: center;
 }
 
 @media (max-width: 600px) {

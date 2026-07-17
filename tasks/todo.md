@@ -35,7 +35,7 @@
 - "Bugün" butonu her zaman içinde bulunulan aya ve güne dönüyor
 - Takvim ayın gün sayısına göre doğru sayıda hücre üretiyor (28-31 gün + gölge günler)
 
-## 4. Etkinlik CRUD ve localStorage
+## 4. Etkinlik CRUD ve localStorage (Not: bkz. 7. bölüm — etkinlik kalıcılığı sonradan localStorage'dan Firestore'a taşındı)
 - [x] `loadEvents()` / `saveEvents(events)` ile localStorage okuma/yazma (anahtar: `calendarEvents`, JSON format)
 - [x] Güne tıklayınca modalın açılıp o günün etkinliklerini listelemesi
 - [x] Etkinlik ekleme (başlık zorunlu, saat/açıklama opsiyonel)
@@ -70,6 +70,27 @@
 **Kabul kriterleri:**
 - Yukarıdaki tüm senaryolar tarayıcıda hatasız çalışıyor
 
+## 7. Kullanıcı hesabı ve bulutta senkronizasyon (Firebase)
+- [x] Firebase compat SDK entegrasyonu (`firebase-config.js`, CDN script'leri) — placeholder config, kullanıcı kendi Firebase proje bilgilerini girecek
+- [x] Auth ekranı: giriş / kayıt sekmeleri, e-posta + şifre + (kayıtta) ad soyad alanları, hata mesajı gösterimi
+- [x] `onAuthStateChanged` ile oturum durumuna göre auth ekranı / takvim ekranı geçişi
+- [x] Kayıt olunca Firestore'da `users/{uid}` altında profil + boş etkinlik dokümanı oluşturulması
+- [x] `saveEvents()`'in Firestore'a yazacak şekilde güncellenmesi (`users/{uid}.events`), `addEvent`/`updateEvent`/`deleteEvent` mantığı değişmeden
+- [x] Giriş yapınca Firestore'dan kullanıcının etkinliklerinin çekilip takvime yüklenmesi
+- [x] Header'da kullanıcı adı + "Çıkış Yap" butonu
+- [x] Auth metinleri için TR/EN/DE çevirileri
+- [x] Firestore güvenlik kuralı: her kullanıcı yalnızca kendi dokümanına erişebilir
+- [x] README.md'ye Firebase kurulum adımları eklendi
+
+**Kabul kriterleri:**
+- Uygulama ilk açıldığında (oturum yoksa) takvim değil, giriş/kayıt ekranı görünüyor
+- Kayıt olan kullanıcı otomatik olarak giriş yapmış sayılıyor ve takvim ekranına yönlendiriliyor
+- Takvimde eklenen/düzenlenen/silinen etkinlikler Firestore'daki kullanıcı dokümanına yazılıyor
+- Çıkış yapıp aynı hesapla tekrar giriş yapıldığında daha önce eklenen etkinlikler geri geliyor
+- Farklı bir hesapla girişte, önceki kullanıcının etkinlikleri görünmüyor (hesaba özel veri izolasyonu)
+- Yanlış e-posta/şifre veya zaten kayıtlı e-posta gibi durumlarda kullanıcıya anlaşılır, seçili dile göre çevrilmiş bir hata mesajı gösteriliyor
+- Not: Gerçek Firebase proje anahtarları girilmeden (placeholder değerlerle) giriş/kayıt işlemleri çalışmaz — bu beklenen bir durumdur, kullanıcı kendi `firebase-config.js` değerlerini girdikten sonra tam olarak test edilebilir
+
 ---
 
 ## Review
@@ -83,3 +104,12 @@ Oluşturulan dosyalar: `index.html`, `style.css`, `script.js` (framework/build a
 - TR/EN/DE arasında değiştirilebilen dil seçici eklendi; seçim `calendarLang` anahtarıyla localStorage'da saklanıp sayfa açılışında geri yükleniyor.
 - Sade, tek accent renkli, mobil uyumlu (responsive) bir arayüz kullanıldı.
 - Playwright ile uçtan uca doğrulama yapıldı: ay geçişleri, etkinlik ekleme/düzenleme/silme + localStorage kalıcılığı, TR/EN/DE dil geçişleri ve sayfa yenileme sonrası kalıcılık, masaüstü ve mobil (375px) genişlikte responsive görünüm — hepsi ekran görüntüleriyle doğrulandı, konsolda hata görülmedi.
+
+### Güncelleme: Kullanıcı hesabı ve bulut senkronizasyonu (Firebase)
+
+- `firebase-config.js` eklendi (Firebase compat SDK, placeholder config — gerçek kullanım için kullanıcının kendi Firebase proje bilgilerini girmesi gerekiyor, bkz. README).
+- Uygulama ilk açıldığında giriş/kayıt ekranı gösteriliyor; oturum açılmadan takvime erişilemiyor.
+- Etkinlik kalıcılığı `localStorage`'dan Firestore'a taşındı: her kullanıcının etkinlikleri `users/{uid}` dokümanında saklanıyor, giriş yapınca otomatik yükleniyor.
+- Firestore güvenlik kuralı ile her kullanıcı yalnızca kendi verisine erişebiliyor.
+- TR/EN/DE için giriş/kayıt/çıkış metinleri ve Firebase hata mesajları çevirisi eklendi.
+- Playwright ile doğrulandı: auth ekranının varsayılan olarak göründüğü, sekme geçişlerinin (giriş/kayıt) çalıştığı, dil değişiminin auth ekranını da kapsadığı, ve placeholder Firebase anahtarlarıyla yapılan bir kayıt denemesinin beklendiği gibi (JS hatası fırlatmadan) çevrilmiş bir hata mesajıyla sonuçlandığı gözlemlendi. Gerçek giriş/kayıt akışı, kullanıcı kendi Firebase proje anahtarlarını `firebase-config.js`'e girdikten sonra uçtan uca test edilebilir.
